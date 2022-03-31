@@ -14,7 +14,8 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.ensemble import BaggingClassifier
 from sklearn.preprocessing import MinMaxScaler
-
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import confusion_matrix
 
 
 def read_dataset(loc):
@@ -147,3 +148,27 @@ def testing(test_df, test_labels, classifier_model):
 	print("Testing time = " + str(round(end - start, 2)) + "s")
 
 	print(classification_report(test_labels, model_prediction))
+	
+	#Calculate TP, FN, FP, TN
+	#total positives (0s) 6849 
+	#total negatives (1s) 2840
+	cm = confusion_matrix(test_labels, model_prediction )
+	TP = cm[0][0]  #Detecting a 0 when it is a 0
+	FN = cm[0][1]  #Detecting a 1 when it is a 0
+	FP = cm[1][0]  #Detecting a 0 when it is a 1
+	TN = cm[1][1]  #Detecting a 1 when it is a 1
+
+	TPR = round(TP / 6849, 3)
+	FNR = round(FN / 6849, 3)
+	FPR = round(FP / 2840, 3)
+	TNR = round(TN / 2840, 3)
+
+	print("Total TPs: " + str(TP), "FNs: " + str(FN), "FPs: " + str(FP), "TNs: " + str(TN))
+	print("Rates TP: " + str(TPR), "FN: " + str(FNR), "FP: " + str(FPR), "TN: " + str(TNR))
+
+	#Calculate roc_auc. Skips SVC
+	if type(classifier_model).__name__ == "SVC":
+		print("roc auc skipped")
+	else:
+		roc_auc = roc_auc_score(test_labels, classifier_model.predict_proba(test_df)[:,1])
+		print("roc auc score: " + str(round(roc_auc, 3)))
