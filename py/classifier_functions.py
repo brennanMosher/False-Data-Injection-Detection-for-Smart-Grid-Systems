@@ -150,18 +150,21 @@ def testing(test_df, test_labels, classifier_model):
 	print(classification_report(test_labels, model_prediction))
 	
 	#Calculate TP, FN, FP, TN
-	#total positives (0s) 6849 
-	#total negatives (1s) 2840
+	#total positives (0s)  
+	positives = test_labels.size - np.count_nonzero(test_labels)
+	#total negatives (1s) 
+	negatives = np.count_nonzero(test_labels)
+
 	cm = confusion_matrix(test_labels, model_prediction )
 	TP = cm[0][0]  #Detecting a 0 when it is a 0
 	FN = cm[0][1]  #Detecting a 1 when it is a 0
 	FP = cm[1][0]  #Detecting a 0 when it is a 1
 	TN = cm[1][1]  #Detecting a 1 when it is a 1
 
-	TPR = round(TP / 6849, 3)
-	FNR = round(FN / 6849, 3)
-	FPR = round(FP / 2840, 3)
-	TNR = round(TN / 2840, 3)
+	TPR = round(TP / positives, 3)
+	FNR = round(FN / positives, 3)
+	FPR = round(FP / negatives, 3)
+	TNR = round(TN / negatives, 3)
 
 	print("Total TPs: " + str(TP), "FNs: " + str(FN), "FPs: " + str(FP), "TNs: " + str(TN))
 	print("Rates TP: " + str(TPR), "FN: " + str(FNR), "FP: " + str(FPR), "TN: " + str(TNR))
