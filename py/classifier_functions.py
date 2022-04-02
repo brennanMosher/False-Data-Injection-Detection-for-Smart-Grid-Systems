@@ -16,7 +16,7 @@ from sklearn.ensemble import BaggingClassifier
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import roc_auc_score
 from sklearn.metrics import confusion_matrix
-
+import matplotlib.pyplot as plt
 
 def read_dataset(loc):
 	'''
@@ -121,9 +121,21 @@ def training(train_df, label_train_df, classifier):
 
 	# Training time
 	start = time.time()
-	# Fit model to data
+		# Fit model to data
 	classifier_model.fit(train_df, label_train_df)
 	end = time.time()
+
+	#Generates feature importance graph and saves it as pdf
+	if type(classifier_model).__name__ == "RandomForestClassifier":
+		importances = classifier_model.feature_importances_	
+		sorted_indices = np.argsort(importances)[::-1]
+		
+		# plt.figure(figsize=(20, 3)) 
+		plt.bar(range(train_df.shape[1]), importances[sorted_indices], align='center')
+		plt.xticks(range(train_df.shape[1]), train_df.columns[sorted_indices], rotation=90, fontsize=2)
+		plt.tight_layout()
+		plt.savefig('importance1.pdf', dpi=600)
+		plt.show()
 
 	print("Training time = " + str(round(end - start, 2)) + "s")
 
