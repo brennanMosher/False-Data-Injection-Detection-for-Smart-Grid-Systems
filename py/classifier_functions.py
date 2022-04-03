@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 from sklearn.svm import SVC
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import classification_report
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -14,8 +14,9 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.ensemble import BaggingClassifier
 from sklearn.preprocessing import MinMaxScaler
-
-
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
 
 def read_dataset(loc):
 	'''
@@ -120,9 +121,21 @@ def training(train_df, label_train_df, classifier):
 
 	# Training time
 	start = time.time()
-	# Fit model to data
+		# Fit model to data
 	classifier_model.fit(train_df, label_train_df)
 	end = time.time()
+
+	#Generates feature importance graph and saves it as pdf
+	if type(classifier_model).__name__ == "RandomForestClassifier":
+		importances = classifier_model.feature_importances_	
+		sorted_indices = np.argsort(importances)[::-1]
+		
+		# plt.figure(figsize=(20, 3)) 
+		plt.bar(range(train_df.shape[1]), importances[sorted_indices], align='center')
+		plt.xticks(range(train_df.shape[1]), train_df.columns[sorted_indices], rotation=90, fontsize=2)
+		plt.tight_layout()
+		plt.savefig('importance1.pdf', dpi=600)
+		plt.show()
 
 	print("Training time = " + str(round(end - start, 2)) + "s")
 
@@ -147,4 +160,30 @@ def testing(test_df, test_labels, classifier_model):
 	print("Testing time = " + str(round(end - start, 2)) + "s")
 
 	print(classification_report(test_labels, model_prediction))
-	print(confusion_matrix(test_labels, model_prediction))
+	
+	#Calculate TP, FN, FP, TN
+	#total positives (0s)  
+	positives = test_labels.size - np.count_nonzero(test_labels)
+	#total negatives (1s) 
+	negatives = np.count_nonzero(test_labels)
+
+	cm = confusion_matrix(test_labels, model_prediction )
+	TP = cm[0][0]  #Detecting a 0 when it is a 0
+	FN = cm[0][1]  #Detecting a 1 when it is a 0
+	FP = cm[1][0]  #Detecting a 0 when it is a 1
+	TN = cm[1][1]  #Detecting a 1 when it is a 1
+
+	TPR = round(TP / positives, 3)
+	FNR = round(FN / positives, 3)
+	FPR = round(FP / negatives, 3)
+	TNR = round(TN / negatives, 3)
+
+	print("Total TPs: " + str(TP), "FNs: " + str(FN), "FPs: " + str(FP), "TNs: " + str(TN))
+	print("Rates TP: " + str(TPR), "FN: " + str(FNR), "FP: " + str(FPR), "TN: " + str(TNR))
+
+	#Calculate roc_auc. Skips SVC
+	if type(classifier_model).__name__ == "SVC":
+		print("roc auc skipped")
+	else:
+		roc_auc = roc_auc_score(test_labels, classifier_model.predict_proba(test_df)[:,1])
+		print("roc auc score: " + str(round(roc_auc, 3)))
