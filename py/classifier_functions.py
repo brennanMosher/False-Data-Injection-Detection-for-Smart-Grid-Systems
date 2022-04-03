@@ -131,10 +131,6 @@ def training(train_df, label_train_df, classifier):
 	if type(classifier_model).__name__ == "RandomForestClassifier":
 		importances = classifier_model.feature_importances_
 		sorted_indices = np.argsort(importances)[::-1]
-<<<<<<< HEAD
-=======
-
->>>>>>> 0a188e0ce6a80c541e0bf03d37ead1e71aaee097
 		# plt.figure(figsize=(20, 3)) 
 		plt.bar(range(train_df.shape[1]), importances[sorted_indices], align='center')
 		plt.xticks(range(train_df.shape[1]), train_df.columns[sorted_indices], rotation=90, fontsize=2)
