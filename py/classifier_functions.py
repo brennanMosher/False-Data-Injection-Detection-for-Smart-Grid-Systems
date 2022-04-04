@@ -4,18 +4,15 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 from sklearn.svm import SVC
-from sklearn.metrics import classification_report
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.ensemble import BaggingClassifier
+from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier, BaggingClassifier, RandomForestClassifier
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import roc_auc_score
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import roc_auc_score, confusion_matrix, classification_report, accuracy_score
+from sklearn.model_selection import KFold
+from sklearn.utils import shuffle
 import matplotlib.pyplot as plt
 
 
@@ -26,6 +23,14 @@ def read_dataset(loc):
 	'''
 	return pd.read_csv(loc)
 
+
+def shuffle_data(df):
+	'''
+	Shuffle the input data frame
+	:param df:
+	:return:
+	'''
+	return shuffle(df)
 
 def dataset_preprocess(df):
 	'''
@@ -85,6 +90,75 @@ def split_attack_natural(df):
 	df_natural = df[df.marker == 0]
 
 	return df_attack, df_natural
+
+def k_fold_train(df, label_df, num_split, classifier):
+	'''
+	Perform full experiment for K-fold cross validation models. Training and testing are run with accuracy as the only metric
+
+	:param df: Training data
+	:param label_df: Labels for training data
+	:param num_split:
+	:param classifier:
+	:return:
+	'''
+	k_fold = KFold(n_splits=num_split, random_state=None)
+
+
+	# List to hold accuracy of each fold
+	accuracy_list = []
+
+	# Using if/else since apparently anything before Python 3.10 doesn't have switch case
+	if classifier == "Random Forest":
+		classifier_model = RandomForestClassifier()
+	elif classifier == "SVM":
+		classifier_model = SVC(kernel='linear')
+	elif classifier == "Logistic Regression":
+		classifier_model = LogisticRegression()
+	elif classifier == "Naive Bayes":
+		classifier_model = GaussianNB()
+	elif classifier == "KNN":
+		classifier_model = KNeighborsClassifier(n_neighbors=7)
+	elif classifier == "Decision Tree":
+		classifier_model = DecisionTreeClassifier(max_depth=3)
+	elif classifier == "AdaBoost":
+		classifier_model = AdaBoostClassifier()
+	elif classifier == "Gradient Boosting":
+		classifier_model = GradientBoostingClassifier()
+	elif classifier == "Bagging":
+		classifier_model = BaggingClassifier(base_estimator=SVC(),
+											 n_estimators=10)
+	# Default case just run Random Forest
+	else:
+		classifier_model = RandomForestClassifier()
+
+	start = time.time()
+	# Get split indexes for training/testing
+	for train_index, test_index in k_fold.split(df):
+
+		# Get training and testing sets
+		train, test = df.iloc[train_index, :], df.iloc[test_index, :]
+
+		# Split label data
+		label_train, label_test = label_df.iloc[train_index], label_df.iloc[test_index]
+
+		# fit model to data
+		classifier_model.fit(train, label_train)
+
+		# Predict on test set
+		pred_values = classifier_model.predict(test)
+
+		# Get accuracy from model
+
+		acc = accuracy_score(pred_values, label_test)
+		accuracy_list.append(acc)
+
+	avg_acc_score = sum(accuracy_list) / num_split
+
+	end = time.time()
+	# Print the accuracy result
+	print('accuracy of each fold - {}'.format(accuracy_list))
+	print('Avg accuracy : {}'.format(avg_acc_score))
+	print('Time: ' + str(end-start))
 
 
 def training(train_df, label_train_df, classifier):
