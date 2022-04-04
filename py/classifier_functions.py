@@ -1,6 +1,7 @@
 import time
 import pandas as pd
 import numpy as np
+from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.model_selection import train_test_split
 
 from sklearn.svm import SVC
@@ -91,16 +92,41 @@ def split_attack_natural(df):
 
 	return df_attack, df_natural
 
+
+def select_features(X_train, y_train, X_test, function, num_features):
+
+	'''
+
+	:param X_train: Training data
+	:param y_train: Training labels
+	:param X_test: Testing set
+	:param function: Function for
+	:return: Training set feature selected, testing set feature selected, feature selection
+	'''
+	# configure to select all features
+	fs = SelectKBest(score_func=function, k=num_features)
+	# learn relationship from training data
+	fs.fit(X_train, y_train)
+	# transform train input data
+	X_train_fs = fs.transform(X_train)
+	# transform test input data
+	X_test_fs = fs.transform(X_test)
+	return X_train_fs, X_test_fs, fs
+
+
+
 def k_fold_train(df, label_df, num_split, classifier):
 	'''
 	Perform full experiment for K-fold cross validation models. Training and testing are run with accuracy as the only metric
 
 	:param df: Training data
 	:param label_df: Labels for training data
-	:param num_split:
-	:param classifier:
+	:param num_split: Number of K folds
+	:param classifier: Specifies classifier for ML
 	:return:
 	'''
+
+	print(classifier)
 	k_fold = KFold(n_splits=num_split, random_state=None)
 
 
@@ -134,6 +160,7 @@ def k_fold_train(df, label_df, num_split, classifier):
 	start = time.time()
 	# Get split indexes for training/testing
 	for train_index, test_index in k_fold.split(df):
+		print(train_index)
 
 		# Get training and testing sets
 		train, test = df.iloc[train_index, :], df.iloc[test_index, :]
