@@ -197,6 +197,7 @@ def training(train_df, label_train_df, classifier):
 	:param classifier: Specifies the classifier used for training
 	:return: Trained classifier
 	'''
+	print(classifier)
 
 	# Using if/else since apparently anything before Python 3.10 doesn't have switch case
 	if classifier == "Random Forest":
