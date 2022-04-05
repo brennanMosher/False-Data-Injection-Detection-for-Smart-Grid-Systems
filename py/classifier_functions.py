@@ -76,6 +76,10 @@ def scaling(df, scaler_algorithm="MinMax"):
 	scaler = MinMaxScaler()
 	df_scaled = pd.DataFrame(scaler.fit_transform(df))
 
+	# Rename last column to marker for compatibility with data_label_split()
+	df_scaled.rename(columns={128:'marker'}, inplace=True)
+	df_scaled['marker'] = df_scaled['marker'].astype(int)
+
 	return df_scaled
 
 

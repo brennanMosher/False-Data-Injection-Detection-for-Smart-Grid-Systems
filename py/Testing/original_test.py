@@ -9,6 +9,12 @@ print(df.head())
 df = dataset_preprocess(df)
 print(df.head())
 
+'''
+Needed for SVM training
+
+df = scaling(df, "MinMax")
+print(df.head())
+'''
 train_df, test_df = training_testing_split(df, testing_split=0.3)
 
 print(train_df.head())
@@ -24,12 +30,16 @@ print(label_train_df.head())
 test_df, label_test_df = data_label_split(test_df)
 print(test_df.head())
 
+train_df, test_df, fs = select_features(train_df, label_train_df, test_df, f_classif, 50)
+train_df = pd.DataFrame(train_df)
+test_df = pd.DataFrame(test_df)
+print(train_df.head())
+print(test_df.head())
 
 print(label_test_df.head())
 
 rf = training(train_df, label_train_df, classifier="Random Forest")
 testing(test_df, label_test_df, rf)
-
 
 svm = training(train_df, label_train_df, classifier="SVM")
 testing(test_df, label_test_df, svm)
@@ -60,7 +70,5 @@ testing(test_df, label_test_df, gb)
 
 bag = training(train_df, label_train_df, classifier="Bagging")
 testing(test_df, label_test_df, bag)
-
-
 
 
